@@ -1,0 +1,10 @@
+#Reference: https://medium.com/analytics-vidhya/import-data-from-excel-into-mysql-using-python-c80c2bd8676a
+
+# pymysql : pyMySQL is a python library for connecting to a MySQL database server from Python.
+# This module has lots of features like it mad CRUD operations simple.
+
+# xlrd : xlrd is a python library for reading data and formatting information from Excel file.
+
+import pymysql
+import plotly
+import xlrd
