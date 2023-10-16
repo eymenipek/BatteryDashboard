@@ -1,0 +1,28 @@
+import matplotlib.pyplot as plt
+from matplotlib.patches import Rectangle
+from colorthief import ColorThief
+
+#fetch the colors
+color_thief = ColorThief('reference3.png')
+color_palette =color_thief.get_palette(color_count=10)
+print(color_palette)
+#normalize the colors between 0-1
+normalized_palette = [(r/255, g/255, b/255) for r,g,b in color_palette]
+
+#create new figure
+fig, ax = plt.subplots(figsize=(12,2))
+
+#create square for each color
+for i, color in enumerate(normalized_palette):
+    #print(color)
+    rect = Rectangle((i,0),4,4, facecolor=color)
+    ax.add_patch(rect)
+
+#close axes and grid
+ax.axis('off')
+ax.set_xlim(0, len(normalized_palette))
+ax.set_ylim(0,1)
+ax.set_aspect(1) #reserve ratio of squares
+
+#show colors
+plt.show()
