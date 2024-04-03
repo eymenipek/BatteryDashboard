@@ -1,0 +1,57 @@
+from asammdf import MDF
+import plotly.io as pio
+import plotly.graph_objects as go
+from plotly.subplots import make_subplots
+import pandas as pd
+import numpy as np
+import plotly
+import os
+
+def LoadData(File, Name=None):
+    
+    d = MDF(File).to_dataframe()
+
+    d.Name=Name
+    print("Loading: " + d.Name)
+    return d
+
+
+def downsample(df,SampleTime="1000ms"):
+    
+    dfnew = df.copy()
+    dfnew.index= pd.to_datetime(dfnew.index, unit='s') 
+    
+    if (SampleTime != "0ms"):
+        dfnew=dfnew.resample(SampleTime).mean()
+        dfnew = dfnew.interpolate()
+
+    dfnew.index=pd.to_numeric(dfnew.index, downcast='float')
+    dfnew.index=dfnew.index/1E9    #from ns to s
+    #d.index=pd.to_timedelta(d.index,'S')
+    dfnew.Name = df.Name
+    return dfnew
+
+def list_files_in_folder(folder_path):
+    try:
+        # Get the list of files in the folder
+        file_list = os.listdir(folder_path)
+
+        # Print each file name
+        for file_name in file_list:
+            print(file_name)
+
+    except FileNotFoundError:
+        print(f"The folder '{folder_path}' does not exist.")
+    except PermissionError:
+        print(f"Permission denied to access the folder '{folder_path}'.")
+    except Exception as e:
+        print(f"An error occurred: {e}")
+
+
+
+def format_plot(fig):
+    fig.update_layout(template="plotly_white")
+    fig.update_layout(legend = dict(font = dict(family = "Arial", size = 15, color = "black")))
+    fig.update_layout(title = dict(font = dict(family = "Arial", size = 15, color = "black")))
+    fig.update_xaxes(color='#000000',gridcolor='#B8B8B8', gridwidth= 0.1, title_font_family="Arial", title_font_size=15, tickfont_size=15)
+    fig.update_yaxes(color='#000000',gridcolor='#B8B8B8', gridwidth= 0.1, title_font_family="Arial", title_font_size=15, tickfont_size=15)
