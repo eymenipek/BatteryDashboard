@@ -1,0 +1,76 @@
+"""
+@author: eymen ipek
+"""
+import os
+import sys
+from pathlib import Path
+from asammdf import MDF
+import pandas as pd
+import numpy as np
+import dataProcess
+from datetime import timedelta
+from scipy.integrate import simps
+from scipy import integrate
+import plotly
+import plotly.io as pio
+import plotly.graph_objects as go
+from plotly.subplots import make_subplots
+from dataProcess import list_files_in_folder
+
+# Provide the path to the folder you want to list files from
+folder_path = "C:/Users/eymen"
+file_list = os.listdir(folder_path)
+
+# for f in file_list:
+#     print(f[-13:-9])
+
+#important_signals = ['Current']
+important_signals = []
+dfList = []
+channels_data = MDF("C:/Users/Example_file.mf4").channels_db
+
+for ch in channels_data:
+    if (ch.startswith("Cur") & ch.endswith("rent")):
+        #print(ch)
+        important_signals.append(ch)
+    # if (ch.startswith("Volt")):  #& ch.endswith("1")
+    #     #print(ch)
+    #     important_signals.append(ch)
+print(important_signals)
+
+for f in file_list:
+    df = MDF(folder_path+"/"+f).filter(important_signals).to_dataframe()
+    #channels = MDF(folder_path+"/"+f).channels_db
+    #print(channels)
+    #df = MDF(folder_path+"/"+f).to_dataframe()
+    df.Name = f[-13:-9]
+    df = dataProcess.downsample(df,SampleTime="1000ms")
+    dfList.append(df)
+
+columns = dfList[0].columns
+# print(columns)
+
+# #fig = go.Figure()
+fig = make_subplots(specs=[[{"secondary_y": True}]])
+columns = dfList[0].columns
+#print(len(columns))
+for df in dfList:
+    for c in columns:
+        if c == "Current":
+            fig.add_trace(go.Scatter(x=df[c].index, y=df[c].values, name=df.Name+": "+c,line = {'dash': 'solid', 'width': 2}), secondary_y=True) 
+            #df["Ah"] = integrate.cumtrapz(df.PEC_I, df.PEC_I.index, initial=0)/3600
+            #fig.add_trace(go.Scatter(x=df["Ah"].index, y=df["Ah"].values, name=df.Name+": Ah",line = {'dash': 'solid', 'width': 2}), secondary_y=True) 
+# #     print(df.Ah)
+        else:
+            fig.add_trace(go.Scatter(x=df[c].index, y=df[c].values, name=df.Name+": "+c,line = {'dash': 'solid', 'width': 2}), secondary_y=False)
+            #print("else")
+            #fig.add_trace(go.Scatter(x=df[c].index, y=df[c].values, name=df.Name+": "+c,line = {'dash': 'solid', 'width': 2}), secondary_y=False) 
+fig.update_xaxes(title_text="<b>Time </b>/ s")
+fig.update_yaxes(title_text="<b>Voltage </b>/ V", secondary_y=False)
+# fig.update_yaxes(title_text="<b>Temperature</b>/ °C", secondary_y=False)
+#fig.update_yaxes(title_text="<b>Current</b>/ A", secondary_y=True)
+# fig.update_yaxes(title_text="<b>Capacity</b>/ Ah", secondary_y=True)
+dataProcess.format_plot(fig)
+fig.show()
+# fig.write_html("Temp_DegC.html")
+fig.write_html("Voltage_V.html")
